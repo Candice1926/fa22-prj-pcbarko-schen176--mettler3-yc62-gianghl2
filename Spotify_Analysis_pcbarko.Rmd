@@ -412,6 +412,4 @@ t.test(Popularity ~ Mode, data = all_dat)
 ```
 Songs in a minor mode have a significantly higher popularity index. The difference in means is miniscule and (as above) I suspect the statistical significance is due to the rather large sample size enabling the detection of very small effect sizes. 
 
-# **Exploratory Data Analysis Conclusions**
-
 
