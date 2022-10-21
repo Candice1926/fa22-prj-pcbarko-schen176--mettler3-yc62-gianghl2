@@ -1,0 +1,417 @@
+---
+title: "Spotify Data Analysis"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(Hmisc)
+library(janitor)
+library(stringr)
+library(rstatix)
+library(FactoMineR)
+library(factoextra)
+library(reshape2)
+library(corrplot)
+
+```
+
+# **Get Data**
+
+For now, I will load some practice data from:  (https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-01-21/readme.md)
+
+
+```{r, include=F}
+spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv')
+
+billboard <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-09-14/billboard.csv')
+
+audio_features <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-09-14/audio_features.csv')
+
+billboard_full <- billboard %>% left_join(audio_features, by = "song_id")
+```
+
+## **Spotify Songs**
+
+Initial subsetting:
+
+```{r}
+
+spotify_songs <- spotify_songs[, c(1:4, 7, 12:23)]
+
+```
+
+Identify and remove duplicate entries:
+
+
+```{r}
+dupes <- spotify_songs %>% 
+  janitor::get_dupes()
+
+#nrow(dupes)
+
+spotify_songs <- spotify_songs %>% 
+  distinct(.keep_all = TRUE) 
+
+paste(nrow(dupes), "duplicate rows were removed from the 'Spotify Songs' dataset")
+
+```
+
+
+## **Billboard Data**
+
+Initial subsetting
+
+```{r}
+
+billboard_full <- billboard_full[,c(14, 4:5, 31, 19:29, 16)] %>% na.omit()
+  
+
+```
+
+Identify and remove duplicate entries:
+
+```{r}
+dupes2 <- billboard_full %>% 
+  janitor::get_dupes()
+
+billboard_full <- billboard_full %>% 
+  na.omit() %>%
+  distinct(.keep_all = TRUE) 
+
+paste(nrow(dupes2), "duplicate rows were removed from the 'Billboard' dataset")
+
+
+```
+
+## **Audio Features Data**
+
+Initial subsetting
+
+```{r}
+
+audio_features <- audio_features[,c(1, 2, 5, 7, 10:22)] %>% na.omit()
+  
+
+```
+
+Identify and remove duplicate entries:
+
+```{r}
+dupes3 <- audio_features %>% 
+  janitor::get_dupes()
+
+#nrow(dupes)
+
+audio_features <- audio_features %>% 
+  na.omit() %>%
+  distinct(.keep_all = TRUE) 
+
+paste(nrow(dupes3), "duplicate rows were removed from the 'Audio Features' dataset")
+
+
+```
+
+## **Combine all data**
+
+Synchronize order of columns
+
+```{r}
+
+names(spotify_songs)
+
+spotify_songs <- spotify_songs[, -5]
+
+names(billboard_full)
+
+names(audio_features)
+
+audio_features <- audio_features[, c(3, 1:2, 17, 5:15, 4)]
+
+```
+
+Rename columns so all datasets have the same colnumn names
+
+```{r}
+names <- c("TrackID", "SongName", "Artist", "Popularity", "Danceability", "Energy", "Key",
+           "Loudness", "Mode", "Speachiness", "Acousticness", "Instrumentalness", "Liveness", "Valence", "Tempo",
+           "Duration")
+
+names(spotify_songs) <- names
+
+names(billboard_full) <- names
+
+names(audio_features) <- names
+
+```
+
+Combine data
+
+```{r}
+all_dat <- rbind(spotify_songs, billboard_full, audio_features)
+```
+
+Remove duplicates in combined data
+
+```{r}
+dupes4 <- all_dat %>% 
+  janitor::get_dupes(TrackID)
+
+#nrow(dupes)
+
+all_dat <- all_dat %>% 
+  na.omit() %>%
+  distinct(TrackID, .keep_all = TRUE) 
+
+paste(nrow(dupes4), "duplicate rows were removed from the 'Combined' dataset")
+
+```
+
+Decode mode attribute:
+
+```{r}
+all_dat$Mode <- case_when(all_dat$Mode == 1 ~ "Major",
+                                all_dat$Mode == 0 ~ "Minor")
+```
+
+Decode key attribute:
+
+```{r}
+
+all_dat$Key <- case_when(
+  all_dat$Key == 0 ~ "C",
+  all_dat$Key == 1 ~ "C#/Db",
+  all_dat$Key == 2 ~ "D",
+  all_dat$Key == 3 ~ "D#/Eb",
+  all_dat$Key == 4 ~ "E",
+  all_dat$Key == 5 ~ "F",
+  all_dat$Key == 6 ~ "F#/Gb",
+  all_dat$Key == 7 ~ "G",
+  all_dat$Key == 8 ~ "G#/Ab",
+  all_dat$Key == 9 ~ "A",
+  all_dat$Key == 10 ~ "A#/Bb",
+  all_dat$Key == 11 ~ "B"
+)
+
+```
+
+## **Quantize the track popularity variable:**
+
+This will be useful for some methods or models that require categorical independent variables 
+
+```{r}
+
+all_dat <- all_dat %>% 
+  mutate(Popularity_quantized = cut(Popularity, breaks=c(0, 25, 50, 75, 100)))
+
+table(all_dat$Popularity_quantized)
+
+levels(spotify_songs$new_bin)
+
+```
+
+# **Exploratory Analysis**
+
+## **Assess Distribution of Numeric Variables:**
+
+```{r}
+
+hist.data.frame(all_dat[, c(4:6, 8, 10:16)])
+
+```
+
+## **Popularity**
+
+```{r}
+quant_pop <- data.frame(table(all_dat$Popularity_quantized))
+
+names(quant_pop)[1] <- "Quantized Popularity"
+
+ggplot(quant_pop, aes(x=`Quantized Popularity`, 
+                      y = Freq, 
+                      fill = `Quantized Popularity`)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  ggtitle("Quantized Popularity Frequencies")
+
+```
+
+Highly popular songs appear to be rare. 
+
+## **Unsupervised Exploratory Analysis of Acoustic Features**
+
+**Principal Component Analysis**
+
+```{r, include=F}
+
+pca <- PCA(all_dat[, c(5:6, 8, 10:16)], graph = F, scale.unit = T)
+
+fviz_eig(pca)
+
+#summary(pca)
+
+
+```
+
+
+```{r}
+
+dat_pca <- data.frame(pca$ind$coord[, 1], pca$ind$coord[, 2])
+
+names(dat_pca) <- c("PC1", "PC2")
+
+pca.vars <- pca$var$coord %>% data.frame
+
+pca.vars$vars <- rownames(pca.vars)
+
+pca.vars.m <- melt(pca.vars, id.vars = "vars")
+
+dat_pca$Popularity_quantized <- factor(all_dat$Popularity_quantized)
+
+dat_pca <- dat_pca %>% na.omit()
+
+ggplot(data = dat_pca, aes(x = PC1, y = PC2, color = Popularity_quantized)) +
+  scale_color_manual(values = c("blue", "orange", "green", "purple")) +
+  geom_hline(yintercept = 0, lty = 2) +
+  geom_vline(xintercept = 0, lty = 2) +
+  guides(color = guide_legend(title = "Group")) +
+  scale_shape_manual(values = c(15, 16, 16, 17, 18)) +
+  geom_point(alpha = 0.8, size = 2) + 
+  xlab("PC 1 (23.2%)") + 
+  ylab("PC 2 (14.0%)") +
+  theme_minimal() +
+  theme(panel.grid = element_blank(), 
+        panel.border = element_rect(fill= "transparent")) +
+  theme(legend.position="bottom") + 
+  theme(legend.title=element_text(size=14), 
+    legend.text=element_text(size=12)) +
+  ggtitle("PCA of Acoustic Attributes")
+
+
+```
+
+## **Exploratory Correlation Analysis**
+
+**Are the acoustic attributes correlated with popularity?**
+
+```{r}
+
+all_dat[, c(4, 5:6, 8, 10:16)] %>%
+  gather(-Popularity, key = "var", value = "value") %>% 
+  ggplot(aes(x = value, y = Popularity)) +
+    geom_point() +
+    facet_wrap(~ var, scales = "free") +
+    theme_bw()
+```
+
+No obvious pattern of correlation between acoustic properties and popularity. But these plots are super messy from the large number of samples. 
+
+Just for fun, I will assess correlation coefficients and interential statistics. Because I am testing multiple, independent hypothesis at once, I will also estimate the false discovery rate (FDR). 
+
+First with Pearson:
+
+```{r}
+
+cor.res <- all_dat[, c(4, 5:6, 8, 10:16)] %>% 
+  cor_test(Popularity, method = "pearson")
+
+cor.res$FDR <- qvalue::qvalue(cor.res$p, pi0 = 1)$qvalues
+
+cor.res[cor.res$FDR<0.05, ]
+
+#cor.res[cor.res$FDR<0.05, c(1:3, 5, 9)] %>% arrange(cor)
+```
+
+Plot correlations among all acoustic variables and popularity (Pearson)
+
+```{r}
+
+all_cor <- cor(all_dat[, c(4, 5:6, 8, 10:16)], method = "pearson")
+
+corrplot(all_cor, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+
+```
+
+
+Now with Spearman:
+
+```{r}
+
+cor.res2 <- all_dat[, c(4, 5:6, 8, 10:16)] %>% 
+  cor_test(Popularity, method = "spearman")
+
+cor.res2$FDR <- qvalue::qvalue(cor.res2$p, pi0 = 1)$qvalues
+
+cor.res2[cor.res2$FDR<0.05, ]
+
+#cor.res[cor.res$FDR<0.05, c(1:3, 5, 9)] %>% arrange(cor)
+```
+
+Plot correlations among all acoustic variables and popularity (Spearman)
+
+```{r}
+
+all_cor <- cor(all_dat[, c(4, 5:6, 8, 10:16)], method = "spearman")
+
+corrplot(all_cor, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+
+```
+
+
+
+## **Categorical Variables**
+
+**Does track popularity vary significantly by song key?**
+
+```{r}
+
+ggplot(all_dat, aes(x=Key, y=Popularity, fill = Key)) + 
+  geom_boxplot() + 
+  theme_bw() + 
+  ggtitle("Song Popularity by Major or Key")
+
+```
+
+```{r}
+
+anova(aov(Popularity ~ Key, data = all_dat))
+
+key_res <- data.frame(TukeyHSD(aov(Popularity ~ Key, data = all_dat))$Key)
+
+key_res_sig <- key_res[key_res$p.adj < 0.05, ]
+
+key_res_sig
+```
+
+There are several statistically significant differences in popularity among songs with different musical keys. These differences are small, and the statistical significance is likely due to the effect of the large samples size enabling detection of small effect sizes. 
+
+
+**Does track popularity vary significantly by song key?**
+
+Major vs Minor modes
+
+```{r}
+
+ggplot(all_dat, aes(x=Mode, y=Popularity, fill = Mode)) + 
+  geom_boxplot() +
+  theme_bw() + 
+  ggtitle("Song Popularity by Major or Minor Mode")
+
+
+```
+
+```{r}
+
+t.test(Popularity ~ Mode, data = all_dat)
+
+```
+Songs in a minor mode have a significantly higher popularity index. The difference in means is miniscule and (as above) I suspect the statistical significance is due to the rather large sample size enabling the detection of very small effect sizes. 
+
+# **Exploratory Data Analysis Conclusions**
+
+
