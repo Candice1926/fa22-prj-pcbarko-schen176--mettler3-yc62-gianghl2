@@ -1,5 +1,5 @@
 ---
-title: "Spotify Data Analysis"
+title: "Spotify Data Exploratory Analysis"
 output: html_document
 date: "`r Sys.Date()`"
 ---
