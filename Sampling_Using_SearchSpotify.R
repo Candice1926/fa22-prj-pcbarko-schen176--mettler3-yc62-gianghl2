@@ -8,6 +8,7 @@ library(stringi)
 library(parallel)
 library(data.table)
 library(foreach)
+
 Sys.setenv(SPOTIFY_CLIENT_ID = '')
 Sys.setenv(SPOTIFY_CLIENT_SECRET = '')
 
