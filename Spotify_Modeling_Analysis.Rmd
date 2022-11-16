@@ -19,7 +19,7 @@ library(e1071)
 ## Initialize Data
 
 ```{r}
-#Loda Data
+#Load Data
 data <- readRDS("C:/Users/steph/OneDrive/Documents/Stat447/Final_Project/Spotify_Practice_Data.RDS")
 head(data)
 summary(data)
