@@ -1,0 +1,453 @@
+---
+title: "Spotify Data Modeling"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(caret)
+library(dplyr)
+library(lmtest)
+library(randomForest)
+library(gbm)
+library(glmnet)
+library(e1071)
+library(foreach)
+library(doParallel)
+library(ranger)
+library(abcrf)
+library(xgboost)
+library(kernlab)
+```
+
+## Initialize Data
+
+```{r}
+#Load Data
+data <- readRDS("~/spotify_combined_data.RDS")
+summary(data)
+colSums(is.na(data))
+
+#Remove NA rows
+data <- data[complete.cases(data),]
+summary(data)
+colSums(is.na(data))
+
+#Check class types of all variables
+lapply(data, class)
+
+#Convert character features to factors
+data$Key <- as.factor(data$Key)
+data$Mode <- as.factor(data$Mode)
+
+#Create numeric of Popularity_quantized for xgboost classification
+data$Popularity_quantized_num <- as.integer(data$Popularity_quantized)-1
+
+summary(data)
+
+#Split data into training and test sets (80/20 split)
+set.seed(447)
+samp_size <- floor(0.8 * nrow(data))
+idx <- sample(seq_len(nrow(data)), size = samp_size)
+
+train <- data[idx,]
+test <- data[-idx,]
+
+#Check final dimensions for training and testing set
+dim(train)
+dim(test)
+```
+
+## Regression Models
+
+```{r}
+reg_train <- train[,4:16]
+reg_test <- test[,4:16]
+
+reg_test_x <- reg_test[, -1] 
+reg_test_y <- as.matrix(reg_test[, 1], nrow = nrow(reg_test[, 1]), ncol = 1)
+```
+
+### 1) Random Forest
+
+```{r}
+#Fit random forest regression model
+rf_reg_fit <- ranger(Popularity ~ Danceability + Energy + Key + 
+                      Loudness + Mode + Speachiness + Acousticness + Instrumentalness + 
+                      Liveness + Valence + Tempo + Duration, data = reg_train, 
+                     importance = 'impurity')
+rf_reg_fit
+
+#Function that computes RMSE and R^2 from true and predicted values
+eval_results <- function(true, predicted, df) {
+  SSE <- sum((predicted - true)^2)
+  SST <- sum((true - mean(true))^2)
+  R_square <- 1 - SSE / SST
+  RMSE <- sqrt(SSE/nrow(df))
+
+  #Summarize model performance metrics
+  data.frame(
+    RMSE <- RMSE,
+    Rsquare <- R_square
+  )
+}
+
+#Prediction and evaluation on test data
+rf_reg_pred_y <- predict(rf_reg_fit, reg_test_x)
+rf_reg_res <- eval_results(as.matrix(reg_test[, 1]), rf_reg_pred_y$predictions, as.matrix(reg_test))
+
+#Get variable importance from the model fit
+importance <- as.vector(rf_reg_fit$variable.importance)
+variable <- as.vector(colnames(reg_train)[2:13])
+var_imp <- cbind(variable, importance)
+var_imp <- as.data.frame(var_imp)
+var_imp$importance <- as.numeric(var_imp$importance)
+var_imp
+
+ggplot(var_imp, aes(x=reorder(variable,importance), y=importance, fill=importance))+ 
+      geom_bar(stat="identity", position="dodge")+ coord_flip()+
+      ylab("Variable Importance")+
+      xlab("")+
+      ggtitle("Variable Importance Plot")
+
+#Tune mtry parameter (# of vars to randomly sample as candidates at each split)
+grid <- expand.grid(mtry = c(2:12), splitrule = "variance", min.node.size = 10)
+
+fitControl <- trainControl(method = "CV",
+                           number = 5,
+                           verboseIter = TRUE)
+
+rf_reg_tune <- train(x = reg_train[,2:13], y = reg_train[,1],
+                        method = 'ranger',
+                        tuneGrid = grid,
+                        metric = "RMSE",
+                        trControl = fitControl)
+rf_reg_tune
+
+rf_reg_fit_tune <- ranger(Popularity ~ Danceability + Energy + Key + 
+                      Loudness + Mode + Speachiness + Acousticness + Instrumentalness + 
+                      Liveness + Valence + Tempo + Duration, data = reg_train, 
+                   importance = 'impurity', mtry = 4)
+rf_reg_fit_tune
+
+#Tuned Prediction and evaluation on test data
+rf_reg_tuned_pred_y <- predict(rf_reg_fit_tune, reg_test_x)
+rf_reg_tuned_res <- eval_results(as.matrix(reg_test[, 1]), rf_reg_tuned_pred_y$predictions, as.matrix(reg_test))
+```
+
+### 2) Gradient Boosting Machine
+
+```{r}
+# #Fit GBM
+# tc <- trainControl(method = "cv", number = 5)
+# gbm_reg_fit <- train(Popularity ~., data = reg_train, method = "gbm", 
+#                      trControl = tc, verbose = FALSE)
+# gbm_reg_fit
+# 
+# #Prediction and evaluation on test data
+# gbm_reg_pred_y <- predict(gbm_reg_fit, reg_test_x)
+# gbm_reg_res <- eval_results(as.matrix(reg_test[, 1]), gbm_reg_pred_y, as.matrix(reg_test))
+
+# #Tune model (later)
+```
+
+### 3) Ridge Regression
+
+```{r}
+# #Scale numeric predictors
+# reg_train_sc <- reg_train
+# reg_test_sc <- reg_test
+# 
+# #Convert factors to dummy vars
+# reg_train_sc_dummy <- data.frame(reg_train_sc[ ,!colnames(reg_train_sc) %in% "Key"],
+#                          model.matrix( ~ Key - 1, reg_train_sc))
+# reg_train_sc_dummy <- data.frame(reg_train_sc_dummy[ ,!colnames(reg_train_sc_dummy) %in% "Mode"],
+#                          model.matrix( ~ Mode - 1, reg_train_sc_dummy))
+# reg_test_sc_dummy <- data.frame(reg_test_sc[ ,!colnames(reg_test_sc) %in% "Key"],
+#                          model.matrix( ~ Key - 1, reg_test_sc))
+# reg_test_sc_dummy <- data.frame(reg_test_sc_dummy[ ,!colnames(reg_test_sc_dummy) %in% "Mode"],
+#                          model.matrix( ~ Mode - 1, reg_test_sc_dummy))
+# 
+# pre_proc_val <- preProcess(reg_train_sc_dummy[, 2:13], method = c("center", "scale"))
+# 
+# reg_train_sc_dummy[, 2:13] <- predict(pre_proc_val, reg_train_sc_dummy[, 2:13])
+# reg_test_sc_dummy[, 2:13] <- predict(pre_proc_val, reg_test_sc_dummy[, 2:13])
+# 
+# summary(reg_train_sc_dummy)
+# 
+# #Fit ridge regression
+# 
+# #Find optimal lambda
+# lambdas <- 10^seq(2, -3, by = -.1)
+# cv_ridge <- cv.glmnet(x = as.matrix(reg_train_sc_dummy[, 2:13]), 
+#                                     y = reg_train_sc_dummy[, 1], alpha = 0, 
+#                                     lambda = lambdas)
+# optimal_lambda <- cv_ridge$lambda.min
+# optimal_lambda
+# 
+# # ridge_reg_fit <- glmnet(as.matrix(reg_train_sc_dummy[, 2:13]), 
+# #                         reg_train_sc_dummy[, 1], nlambda = 25, alpha = 0, 
+# #                         family = 'gaussian', lambda = lambdas)
+# 
+# # summary(ridge_reg_fit)
+# 
+# #Prediction and evaluation on test data
+# ridge_pred_y <- predict(cv_ridge, s = optimal_lambda, newx = as.matrix(reg_test_sc_dummy[, 2:13]))
+# ridge_reg_res <- eval_results(reg_test_sc_dummy[, 1], ridge_pred_y, reg_test_sc_dummy)
+```
+
+### 4) Lasso Regression
+
+```{r}
+# #Fit lasso regression
+# 
+# #Find optimal lambda
+# lambdas <- 10^seq(2, -3, by = -.1)
+# 
+# cv_lasso <- cv.glmnet(x = as.matrix(reg_train_sc_dummy[, 2:13]), 
+#                       y = reg_train_sc_dummy[, 1], alpha = 0, 
+#                       lambda = lambdas, standardize = TRUE, nfolds = 5)
+# optimal_lambda <- cv_lasso$lambda.min 
+# optimal_lambda
+# 
+# #Prediction and evaluation on test data
+# lasso_pred_y <- predict(cv_lasso, s = optimal_lambda, newx = as.matrix(reg_test_sc_dummy[, 2:13]))
+# lasso_reg_res <- eval_results(reg_test_sc_dummy[, 1], lasso_pred_y, reg_test_sc_dummy)
+```
+
+### 5) Support Vector Regression
+
+```{r}
+# #Fit support vector regression
+# svm_reg_fit <- svm(Popularity~., data = reg_train)
+# 
+# #Prediction and evaluation on test data
+# svm_reg_pred_y <- predict(svm_reg_fit, newx = reg_test_x, newdata = reg_test)
+# svm_reg_res <- eval_results(as.matrix(reg_test[, 1]), svm_reg_pred_y, as.matrix(reg_test))
+# 
+# #Tune model (later)
+```
+
+### Summarize Results
+
+```{r}
+#Make a table of regression results
+#tab <- matrix(c(rf_reg_res, gbm_reg_res, ridge_reg_res, lasso_reg_res, 
+#                svm_reg_res), nrow = 5, ncol = 2, byrow = TRUE)
+#rownames(tab) <- c("Random Forest", "GBM", "Ridge", "Lasso", "SVM")
+#colnames(tab) <- c("RMSE", "R^2")
+#tab
+
+tab <- matrix(c(rf_reg_res, gbm_reg_res, svm_reg_res), nrow = 3, ncol = 2, 
+              byrow = TRUE)
+rownames(tab) <- c("Random Forest", "GBM", "SVM")
+colnames(tab) <- c("RMSE", "R^2")
+tab
+```
+
+## Classification Models
+
+```{r}
+cl_train <- train[,5:18]
+cl_test <- test[,5:18]
+
+cl_test_x <- cl_test[, -c(13:14)] 
+cl_test_y <- as.matrix(cl_test[, 13], nrow = nrow(cl_test[, 13]), ncol = 1)
+cl_test_xgb_y <- as.matrix(cl_test[, 14], nrow = nrow(cl_test[, 14]), ncol = 1)
+```
+
+### 1) Random Forest
+
+```{r}
+#Fit random forest regression model
+rf_cl_fit <- ranger(Popularity_quantized ~ Danceability + Energy + Key + 
+                      Loudness + Mode + Speachiness + Acousticness + Instrumentalness + 
+                      Liveness + Valence + Tempo + Duration, data = cl_train, 
+                   importance = 'impurity')
+rf_cl_fit
+
+#Prediction and evaluation on test data
+rf_cl_pred_y <- predict(rf_cl_fit, cl_test_x)
+table <- table(rf_cl_pred_y$predictions, cl_test_y)[1:4, c(4,1:3)]
+table
+rf_table <- confusionMatrix(table)
+
+#Get variable importance from the model fit
+importance <- as.vector(rf_cl_fit$variable.importance)
+variable <- as.vector(colnames(cl_train)[1:12])
+var_imp <- cbind(variable, importance)
+var_imp <- as.data.frame(var_imp)
+var_imp$importance <- as.numeric(var_imp$importance)
+var_imp
+
+ggplot(var_imp, aes(x=reorder(variable,importance), y=importance, fill=importance))+ 
+      geom_bar(stat="identity", position="dodge")+ coord_flip()+
+      ylab("Variable Importance")+
+      xlab("")+
+      ggtitle("Variable Importance Plot")
+
+#Tune mtry parameter (# of vars to randomly sample as candidates at each split)
+grid <- expand.grid(mtry = c(2:12), splitrule = "gini", min.node.size = 10)
+
+fitControl <- trainControl(method = "CV",
+                           number = 5,
+                           verboseIter = TRUE)
+
+rf_cl_tune <- train(x = cl_train[,1:12], y = cl_train[,13],
+                        method = 'ranger',
+                        tuneGrid = grid,
+                        metric = "Accuracy",
+                        trControl = fitControl)
+rf_cl_tune
+
+rf_cl_fit_tune <- ranger(Popularity_quantized ~ Danceability + Energy + Key + 
+                      Loudness + Mode + Speachiness + Acousticness + Instrumentalness + 
+                      Liveness + Valence + Tempo + Duration, data = cl_train, 
+                   importance = 'impurity', mtry = 2)
+rf_cl_fit_tune
+
+#Tuned Prediction and evaluation on test data
+rf_cl_tuned_pred_y <- predict(rf_cl_fit_tune, cl_test_x)
+table <- table(rf_cl_tuned_pred_y$predictions, cl_test_y)[1:4, c(4,1:3)]
+table
+rf_tuned_table <- confusionMatrix(table)
+```
+
+### 2) Gradient Boosting Machine
+
+```{r}
+# #One-hot encode variables
+# sparse_matrix <- sparse.model.matrix(Popularity_quantized_num ~ Danceability + 
+#                                        Energy + Key + Loudness + Mode + Speachiness +
+#                                        Acousticness + Instrumentalness + 
+#                                        Liveness + Valence + Tempo + Duration, data = 
+#                                        cl_train)[,-1]
+# dim(sparse_matrix)
+# 
+# #Fit GBM
+# gbm_cl_fit <- train(x = sparse_matrix, y = cl_train$Popularity_quantized_num, 
+#                     method = "xgbTree", verbosity = 0)
+# gbm_cl_fit
+# # gbm_cl_fit2 <- train(x = cl_train[,1:12], y = cl_train[,13], method = "gbm")
+# # gbm_cl_fit2
+# 
+# #Prediction and evaluation on test data
+# # gbm_cl_pred_y <- predict(gbm_cl_fit2, cl_test_x)
+# # table <- table(gbm_cl_pred_y, cl_test_y)[1:4, c(4,1:3)]
+# # table
+# # gbm_table <- confusionMatrix(table)
+# 
+# #Tune model
+# # gbm_cl_fit_tune <- train(x = sparse_matrix, y = cl_train$Popularity_quantized_num, 
+# #                     method = "xgbTree", verbosity = 0, trControl = fitControl,
+# #                     tuneLength = 10)
+# # gbm_cl_fit_tune
+# 
+# gbm_cl_fit_tune2 <- train(x = cl_train[,1:12], y = cl_train[,13], 
+#                     method = "gbm", trControl = fitControl,
+#                     tuneLength = 10)
+# gbm_cl_fit_tune2
+# 
+# gbm_cl_fit2 <- train(x = cl_train[,1:12], y = cl_train[,13], method = "gbm")
+# gbm_cl_fit2
+```
+
+### 3) K-Nearest Neighbors
+
+```{r}
+#Scale numeric predictors
+# cl_train_sc <- cl_train
+# cl_test_sc <- cl_test
+# 
+# #Convert factors to dummy vars
+# cl_train_sc_dummy <- data.frame(cl_train_sc[ ,!colnames(cl_train_sc) %in% "Key"],
+#                          model.matrix( ~ Key - 1, cl_train_sc))
+# cl_train_sc_dummy <- data.frame(cl_train_sc_dummy[ ,!colnames(cl_train_sc_dummy) %in% "Mode"],
+#                          model.matrix( ~ Mode - 1, cl_train_sc_dummy))
+# cl_test_sc_dummy <- data.frame(cl_test_sc[ ,!colnames(cl_test_sc) %in% "Key"],
+#                          model.matrix( ~ Key - 1, cl_test_sc))
+# cl_test_sc_dummy <- data.frame(cl_test_sc_dummy[ ,!colnames(cl_test_sc_dummy) %in% "Mode"],
+#                          model.matrix( ~ Mode - 1, cl_test_sc_dummy))
+# 
+# pre_proc_val <- preProcess(cl_train_sc_dummy[, c(1:10, 13:26)], method = c("center", "scale"))
+# 
+# cl_train_sc_dummy[, c(1:10, 13:26)] <- predict(pre_proc_val, cl_train_sc_dummy[, c(1:10, 13:26)])
+# cl_test_sc_dummy[, c(1:10, 13:26)] <- predict(pre_proc_val, cl_test_sc_dummy[, c(1:10, 13:26)])
+# 
+# summary(cl_train_sc_dummy)
+# 
+# #Fit KNN
+# knn_cl_fit <- train(cl_train_sc_dummy[, c(1:10, 13:26)], cl_train_sc_dummy[, 11], method = "knn", preProcess = c("center","scale"))
+# knn_cl_fit
+# 
+# #Prediction and evaluation on test data
+# knn_cl_pred_y <- predict(knn_cl_fit, cl_test_sc_dummy[, c(1:10, 13:26)])
+# table <- table(knn_cl_pred_y, cl_test_sc_dummy[, 11])
+# table
+# knn_table <- confusionMatrix(table)
+# 
+# #Tune model (k parameter)
+```
+
+### 4) Linear Discriminant Analysis
+
+```{r}
+# #Fit LDA
+# tc <- trainControl(method = "cv", number = 10)
+# lda_fit <- train(Popularity_Quantized ~., data = cl_train, method = "lda", 
+#               trControl = tc, metric = "Accuracy")
+# lda_fit
+# 
+# #Tune model (later)
+# 
+# #Prediction and evaluation on test data
+# lda_pred_y <- predict(lda_fit, cl_test_x)
+# table <- table(lda_pred_y, cl_test_y)[1:4, c(4,1:3)]
+# table
+# lda_table <- confusionMatrix(table)
+```
+
+### 5) Support Vector Classifier
+
+```{r}
+#Fit SVM
+# svm_cl_fit <- svm(Popularity_Quantized ~., data = cl_train, 
+#           method = "C-classification", kernal = "radial")
+# svm_cl_fit
+
+#Tune model
+# svm_cl_fit_tune <- train(Popularity_quantized ~ Danceability + Energy + Key + 
+#                            Loudness + Mode + Speachiness + Acousticness + Instrumentalness + 
+#                            Liveness + Valence + Tempo + Duration, data = cl_train,
+#                          method = "svmRadial", tuneLength = 5,
+#                          preProc = c("center","scale"), metric = "Accuracy",
+#                          trControl = fitControl)
+# 
+# svm_cl_fit_tune
+# 
+# #Prediction and evaluation on test data
+# svm_cl_tuned_pred_y <- predict(svm_cl_fit)tune, cl_test_x)
+# table <- table(svm_cl_pred_y, cl_test_y)[1:4, c(4,1:3)]
+# table
+# svm_table <- confusionMatrix(table)
+```
+
+### Summarize Results
+
+```{r}
+#Make a table of classification results
+#tab <- matrix(c(rf_table$overall[1], gbm_table$overall[1], knn_table$overall[1],
+#                lda_table$overall[1], svm_table$overall[1]), 
+#              nrow = 5, ncol = 1, byrow = TRUE)
+#rownames(tab) <- c("Random Forest", "GBM", "KNN", "LDA", "SVM")
+#colnames(tab) <- c("Accuracy")
+#tab
+
+tab <- matrix(c(rf_table$overall[1], gbm_table$overall[1], svm_table$overall[1]), 
+              nrow = 3, ncol = 1, byrow = TRUE)
+rownames(tab) <- c("Random Forest", "GBM", "SVM")
+colnames(tab) <- c("Accuracy")
+tab
+```
