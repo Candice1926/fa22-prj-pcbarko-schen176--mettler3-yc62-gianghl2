@@ -25,7 +25,7 @@ library(kernlab)
 ## Initialize Data
 
 ```{r}
-#Load Data
+#Initialize Data
 data <- readRDS("~/spotify_combined_data.RDS")
 summary(data)
 colSums(is.na(data))
