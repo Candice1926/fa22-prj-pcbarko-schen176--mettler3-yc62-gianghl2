@@ -14,8 +14,11 @@ library(randomForest)
 library(gbm)
 library(glmnet)
 library(e1071)
+library(foreach)
+library(doParallel)
 library(ranger)
 library(abcrf)
+library(xgboost)
 library(kernlab)
 ```
 
@@ -257,10 +260,6 @@ rf_cl_tune <- train(x = cl_train[,1:12], y = cl_train[,13],
                         metric = "Accuracy",
                         trControl = fitControl)
 rf_cl_tune
-
-rf_cl_tuned_fit <- ranger(Popularity_quantized ~ ., data = cl_train, 
-                     importance = 'impurity', mtry = 4)
-rf_cl_tuned_fit
 
 #Optimal model is mtry = 3 which is the random forest classification model that was already run
 ```
