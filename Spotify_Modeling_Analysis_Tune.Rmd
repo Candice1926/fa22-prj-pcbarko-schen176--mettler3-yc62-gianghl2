@@ -14,18 +14,16 @@ library(randomForest)
 library(gbm)
 library(glmnet)
 library(e1071)
-library(foreach)
-library(doParallel)
 library(ranger)
 library(abcrf)
-library(xgboost)
 library(kernlab)
+library(formattable)
 ```
 
 ## Initialize Data
 
 ```{r}
-#Load Data
+#Initialize Data
 data <- readRDS("~/spotify_combined_data.RDS")
 summary(data)
 colSums(is.na(data))
@@ -126,6 +124,9 @@ rf_reg_tune <- train(x = reg_train[,2:13], y = reg_train[,1],
                         trControl = fitControl)
 rf_reg_tune
 
+plot(rf_reg_tune$results[,1], rf_reg_tune$results[,4], xlab = "Mtry", ylab = "RMSE",
+     type = "l")
+
 #Optimal model is mtry = 3 which is the random forest regression model that was already run
 ```
 
@@ -150,6 +151,8 @@ gbm_grid <-  expand.grid(interaction.depth = c(1, 5, 9),
 gbm_reg_tune <- train(Popularity ~., data = reg_train, method = "gbm",
                      trControl = fitControl, verbose = FALSE, tuneGrid = gbm_grid)
 gbm_reg_tune
+
+plot(gbm_reg_tune)
 
 gbm_grid_tune <-  expand.grid(interaction.depth = 9, 
                         n.trees = 400, 
@@ -185,6 +188,8 @@ svm_reg_tune <- train(Popularity ~., data = reg_train, method = "svmLinear",
                            tuneGrid = svm_grid)
 svm_reg_tune
 
+plot(svm_reg_tune)
+
 svm_grid_tune <- expand.grid(C = 0.25)
 
 svm_reg_tuned_fit <- train(Popularity ~., data = reg_train, method = "svmLinear", 
@@ -201,8 +206,9 @@ svm_reg_tuned_res <- eval_results(as.matrix(reg_test[, 1]), svm_reg_tuned_pred_y
 
 ```{r}
 #Make a table of regression results
-tab <- matrix(c(rf_reg_res, rf_reg_res, gbm_reg_res, gbm_reg_tuned_res, svm_reg_res, 
-                svm_reg_tuned_res), nrow = 6, ncol = 2, byrow = TRUE)
+tab <- matrix(c(round(rf_reg_res,3), round(rf_reg_res,3), round(gbm_reg_res,3), 
+                round(gbm_reg_tuned_res,3), round(svm_reg_res,3), 
+                round(svm_reg_tuned_res,3)), nrow = 6, ncol = 2, byrow = TRUE)
 rownames(tab) <- c("Random Forest", "Random Forest Tuned", "GBM", "GBM Tuned", "SVM",
                    "SVM Tuned")
 colnames(tab) <- c("RMSE", "R^2")
@@ -261,6 +267,9 @@ rf_cl_tune <- train(x = cl_train[,1:12], y = cl_train[,13],
                         trControl = fitControl)
 rf_cl_tune
 
+plot(rf_cl_tune$results[,1], rf_cl_tune$results[,4], xlab = "Mtry", ylab = "Accuracy",
+     type = "l")
+
 #Optimal model is mtry = 3 which is the random forest classification model that was already run
 ```
 
@@ -287,6 +296,8 @@ gbm_grid <-  expand.grid(interaction.depth = c(1, 5, 9),
 gbm_cl_tune <- train(Popularity_quantized ~., data = cl_train, method = "gbm",
                      trControl = fitControl, verbose = FALSE, tuneGrid = gbm_grid)
 gbm_cl_tune
+
+plot(gbm_cl_tune)
 
 gbm_grid_tune <-  expand.grid(interaction.depth = 9, 
                         n.trees = 100, 
@@ -326,6 +337,8 @@ svm_cl_tune <- train(Popularity_quantized ~., data = cl_train, method = "svmLine
                            tuneGrid = svm_grid)
 svm_cl_tune
 
+plot(svm_cl_tune)
+
 #Optimal model is C = 1 which is the svm classification model that was already run
 ```
 
@@ -333,8 +346,9 @@ svm_cl_tune
 
 ```{r}
 #Make a table of classification results
-tab <- matrix(c(rf_table$overall[1], rf_table$overall[1], gbm_table$overall[1], 
-                gbm_tuned_table$overall[1], svm_table$overall[1], svm_table$overall[1]), 
+tab <- matrix(c(round(rf_table$overall[1],3), round(rf_table$overall[1],3), 
+                round(gbm_table$overall[1],3), round(gbm_tuned_table$overall[1],3), 
+                round(svm_table$overall[1],3), round(svm_table$overall[1],3)), 
               nrow = 6, ncol = 1, byrow = TRUE)
 rownames(tab) <- c("Random Forest", "Random Forest Tuned", "GBM", "GBM Tuned", "SVM",
                    "SVM Tuned")
