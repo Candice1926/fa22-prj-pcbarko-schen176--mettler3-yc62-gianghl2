@@ -56,6 +56,7 @@ library(reshape2)
 library(corrplot)
 library(shiny)
 library(bookdown)
+library(qvalue)
 ```
 
 # Abstract
@@ -351,9 +352,9 @@ list.files()
 songs <- read_tsv("songs.tsv",col_names=TRUE,show_col_types = FALSE)
 
 #These were generated in Python - the files have been renamed for convenience
-songs2 <-read_tsv("songs2.tsv", col_names = TRUE,show_col_types = FALSE)
+songs2 <-read_tsv("songs2.tsv.gz", col_names = TRUE,show_col_types = FALSE)
 
-songs3 <-read_tsv("songs3.tsv", col_names = TRUE,show_col_types = FALSE)
+songs3 <-read_tsv("songs3.tsv.gz", col_names = TRUE,show_col_types = FALSE)
 
 
 ```
