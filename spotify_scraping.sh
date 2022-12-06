@@ -1,4 +1,4 @@
-i#!/bin/bash
+#!/bin/bash
 # Bash script to search for random ids for Spotify tracks using the web API.
 # STAT 447
 # Giang Le
