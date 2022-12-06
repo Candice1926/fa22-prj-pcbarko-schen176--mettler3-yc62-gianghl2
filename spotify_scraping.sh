@@ -1,4 +1,4 @@
-#!/bin/bash
+i#!/bin/bash
 # Bash script to search for random ids for Spotify tracks using the web API.
 # STAT 447
 # Giang Le
@@ -14,10 +14,14 @@ encoded_creds=$(echo -n $creds | base64)
 access_token=$(curl -s -X "POST" -H "Authorization: Basic $encoded_creds" -d grant_type=client_credentials https://accounts.spotify.com/api/token | awk -F"\"" '{print $4}')
 echo $access_token
 rm result.json extracted_ids.txt
+
 for x in {a..z}
 do
-curl --request GET --url "https://api.spotify.com/v1/search?q=%25"$x"%25&type=track&limit=50&market=US" --header "Authorization: Bearer $access_token" --header "Content-Type: application/json" >> result.json
+for y in {0..9}
+do
+curl --request GET --url "https://api.spotify.com/v1/search?q=$x$y&type=track&limit=50&year=1970-2023" --header "Authorization: Bearer $access_token" --header "Content-Type: application/json" >> result.json
 done
-
+done
 cat result.json | grep -o "\"id\" :.*" | sed 's/"id" : "//g' | sed 's/",$//g' >> extracted_ids.txt
-
+cat extracted_ids.txt | sort | uniq > tmp
+mv tmp extracted_ids.txt
