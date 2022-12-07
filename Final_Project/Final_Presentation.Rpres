@@ -8,10 +8,12 @@ autosize: true
 Introduction
 ========================================================
 - Spotify is a popular music streaming service with rich metadata about tracks, artists, albums.
-- Goals of project:
-+ Curate a novel dataset by generating random song ids
-+ Perform exploratory analysis on the data
-+ Perform statistical modeling on the data
+- Project's question: How can a track's popularity be predicted by its acoustic attributes?
+- Goals of the project:
+  + Curate a novel dataset by generating random song ids
+  + Perform exploratory analysis on the dataset
+  + Perform statistical modeling (classification models, regression models) on the data where the popularity index is the
+  response variable and the acoustic attributes are the explanatory variables.
 
 
 Data Sampling
