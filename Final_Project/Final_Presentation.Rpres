@@ -65,26 +65,6 @@ Statistical Modeling - Overall Results
 </div>
 
 
-Statistical Modeling - Accuracy with Cross-Validation Plots for GBM
-========================================================
-<div align="center">
-<img src="https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/gbm_cl_int_depth_iter.png" width=800 height=500>
-</div>
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/gbm_reg_int_depth_iter.png" width=800 height=500>
-</div>
-
-Statistical Modeling - Accuracy with Cross-Validation Plots for SVM
-========================================================
-<div align="center">
-<img src="https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/svm_cl_cost.png" width=800 height=500>
-</div>
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/svm_reg_cost.png" width=800 height=500>
-</div>
-
 Statistical Modeling - Variable Importance
 ========================================================
 <div align="center"> Regression models </div>
