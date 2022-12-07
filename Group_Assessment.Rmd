@@ -1,0 +1,41 @@
+---
+title: "STAT 447 Group Evaluation"
+author: "fa22-prj-pcbarko-schen176-mettler3-yc62-gianghl2"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Contributions of Each Member to the Group Project**
+
+## **Yongxin Cai**
+
+Yongxin contributed to the acqusition of a new dataet of Spotify songs. She contributed python and R scripts that scraped song data from Spotify and presented this part in the group presentation.
+
+## **Giang Ha Le**
+
+Giang contributed to the acqusition of a new dataet of Spotify songs. She worked on data scraping using the Spotify Search query API. She also organized the group presentation.
+
+## **Matt Mettler**
+
+Matt Mettler contributed to the acqusition of a new dataet of Spotify songs.e worked on the sampling code and wrote the sampling section in the final project report and helped present the sampling portion in the presentation. 
+
+## **Patrick Barko**
+
+Patrick accessed and prepared a practice dataset from a publically available sources so the modeling analysis could be developed in parralel with new data acqusition. Once the new data was available, he cleaned the data and performed exploratory analysis (assessed distribution of variables, principal component analysis, correlation analysis). He contributed 3 different interactive (shiny) outputs in the final report. Finally, he contributed to the final report in markdown and presented the data cleaning and exploratory analysis portion of the presentation. 
+
+## **Stephanie Chen**
+
+Stephanie worked on the modeling analysis, which entailed running and tuning 3 regression and 3 classification models and assessing their performance. She also wrote the 'Modeling Analysis' and 'Results' sections in the final project report and presented these results in the video presentation.
+
+# **Overall Group Assessment**
+
+Our group worked well together through a combination of email exchanges and in-person and virtual meetings. Responsibilities were shared equally among the group members and all made meaningful contributions toward completion of the project. We were able to quickly establish our project objectives and divide responsibilities for various tasks. The most challenging aspect of the project was acquisition of the new dataset from the Spotify API. This task was accomplished by Yongxin, Giagn, and Matt. WOur progress on the project was enabled by use of a practice dataset that we obtained from publically available sources - this allowed us to work on new data acqusition and modeling in parallel. 
+
+
+
