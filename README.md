@@ -12,6 +12,8 @@ Spotify is an audio streaming service used by *hundreds of millions* of people. 
 
 We were successful in generating a new spotify database of 629,643 songs including various metadata: track ID, artist, a popularity index, and several acoustic/sonic features. Exploratory analysis included principal component analysis and correlation analysis between popularity and acoustic/sonic attributes and among the different acoustic/sonic attributes. We modeled song popularity from the acoustic/sonic attributes using regression and classification models. We found that random forest models performed best with our data and that liner models had comparably poor performance. 
 
+In completing this project, our group developed several new capabilities including generating random alphanumeric strings to query the Spotify API, cleaning a very large dataset (scanning for duplicated, etc.), interactive plots and tables using Shiny, and comparing performance of several different models. 
+
 Code and results for the final project are located in the "Final_Project) directory, and intermediate versions are located in the "Old_Analysis" and "Old_Data" directories. 
 
 
