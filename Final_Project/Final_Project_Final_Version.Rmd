@@ -1108,5 +1108,5 @@ The variable that has the most impact in predicting song popularity is *loudness
 
 ## Conclusion
 
-\newpage
+In summary our project accomplishes two objectives. First, we were able to create novel date using a combination of python, bash and R packages we learned throughout the semester. Second, we completed an exploratory and machine learning analysis on our novel dataset to understand what parameters of songs predict popularity. From our analysis we found that loudness was by far the best predictor of song popularity, followed by speechiness, energy and duration. While we don't intend to make any theoretical argument for these predictors they seem to make sense if we consider that one way (but certainly not the only way) music popularity spreads is radio play and songs that are loud, have lyrics and are not twelve minutes long tend to get radio time.   
 
