@@ -8,23 +8,12 @@
 - Giang Ha Le gianghl2
 - Yongxin Cai yc62
 
-Spotify is an audio streaming service used by *hundreds of millions* of people. 
+Spotify is an audio streaming service used by *hundreds of millions* of people. For this group project, we sought to model the popularity of songs based on several acoustic and sonic attributes. There are several published Spotify datasets, but these are several years old. Our **fist objective** was to create a new, *updated* dataset of Spotify songs. We accomplished this using python and R scripts to generate random song IDs and using these to search the Spotify API. Our **second objective** was to model the use song popularity (dependent variable) from acoustic attributes (independent variables). Others have attempted to model popularity from the acoustic attributes and genre, but most used *linear models that did not perform well*. We used alternative approaches to modeling/predicting song popualrity from acoustic attributes and compared them. 
 
-The popularity of each song is quantified using a numeric popularity index. Each song is associated with metadata including genra, artist, several acoustic attributes:
-- acousticness
-- danceability
-- durationms
-- energy
-- instrumentalness
-- key
-- liveness
-- loudness
-- mode
-- speechiness
-- tempo
-- timesignature
-- valence
-- genre
+We were successful in generating a new spotify database of 629,643 songs including various metadata: track ID, artist, a popularity index, and several acoustic/sonic features. Exploratory analysis included principal component analysis and correlation analysis between popularity and acoustic/sonic attributes and among the different acoustic/sonic attributes. We modeled song popularity from the acoustic/sonic attributes using regression and classification models. We found that random forest models performed best with our data and that liner models had comparably poor performance. 
 
-We propose to model the popularity index based on the acoustic attributes and genre. There are several published Spotify datasets, but these are several years old. Our **fist objective** is to create a new, *updated* dataset of Spotify songs. We will attempt to accomplish this by generating random song IDs and using these to search the Spotify API. We anticipate this will be the most challenging aspect of the project, as Spotify does not enable bulk, random queries. Our **second objective** is to model the use song popularity (dependent variable) from acoustic attributes. Others have attempted to model popularity from the acoustic attributes and genre, but most used *linear models that did not perform well*. We plan to use alternative approaches to modeling/predicting song popualrity from acoustic attributes and compare them. 
+In completing this project, our group developed several new capabilities including generating random alphanumeric strings to query the Spotify API, cleaning a very large dataset (scanning for duplicated, etc.), interactive plots and tables using Shiny, and comparing performance of several different models. 
+
+Code and results for the final project are located in the "Final_Project) directory, and intermediate versions are located in the "Old_Analysis" and "Old_Data" directories. 
+
 
