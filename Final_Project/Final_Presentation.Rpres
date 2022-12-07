@@ -34,10 +34,6 @@ Exploratory Analysis- Popularity Distribution
 ========================================================
 ![Popularity distribution](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image001.png)
 
-Exploratory Analysis - Quantized Popularity Frequencies
-========================================================
-![Quantized popularity frequencies](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image002.png)
-
 Exploratory Analysis - PCA of Acoustic Attributes
 ========================================================
 ![PCA of Acoustic Attributes](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image003.png)
@@ -45,10 +41,6 @@ Exploratory Analysis - PCA of Acoustic Attributes
 Exploratory Analysis - Popularity by Acoustic Attributes
 ========================================================
 ![Popularity by Acoustic Attributes](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image004.png)
-
-Exploratory Analysis - Correlation Plot
-========================================================
-![Correlation Plot](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image005.png)
 
 
 Statistical Modeling - Overall Results
@@ -80,8 +72,13 @@ Statistical Modeling - Variable Importance
 Conclusion
 ========================================================
 - Our data scraping techniques yielded a sizable dataset.
+- We completed an exploratory and machine learning analysis on our novel dataset to understand what parameters of songs predict popularity.
+- The random forest model has the best predictive power among the models run.
+- Best predictors of song popularity: loudness, speechiness, energy, duration.
 
 References
 ========================================================
 - [R wrapper for Spotify's Web API](https://github.com/charlie86/spotifyr)
 - [Web API for Spotify](https://developer.spotify.com/documentation/web-api/)
+- [Spotify Web](https://open.spotify.com/)
+- [Spotify Newsroom](https://newsroom.spotify.com/company-info/)
