@@ -345,7 +345,7 @@ Scraping the Spotify API resulted in the generation the three datasets of Spotif
 
 list.files()
 
-songs <- read_tsv("songs.tsv.gz",col_names=TRUE,show_col_types = FALSE)
+songs <- read_tsv("songs.tsv",col_names=TRUE,show_col_types = FALSE)
 
 songs2 <-read_tsv("songs2.tsv.gz", col_names = TRUE,show_col_types = FALSE)
 
