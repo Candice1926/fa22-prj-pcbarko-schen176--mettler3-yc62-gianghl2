@@ -1,8 +1,8 @@
 install.packages("spotifyr")
 library(spotifyr)
 
-Sys.setenv(SPOTIFY_CLIENT_ID = '7c83827741ee4cbc9bd117a9cf608a39')
-Sys.setenv(SPOTIFY_CLIENT_SECRET = '9c2a651fdabd472892b873644f774b09')
+Sys.setenv(SPOTIFY_CLIENT_ID = '')
+Sys.setenv(SPOTIFY_CLIENT_SECRET = '')
 
 access_token <- get_spotify_access_token()
 
@@ -13,4 +13,5 @@ ids_list <- as.list(strsplit(ids, " "))
 
 # write track audio features to csv
 lapply(ids_list, function(x) write.table(get_track_audio_features(x), 'track_features_25k.csv', append=TRUE,col.names = FALSE, sep=',' ))
+
 
