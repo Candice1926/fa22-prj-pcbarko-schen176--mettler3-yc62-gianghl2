@@ -80,3 +80,8 @@ Statistical Modeling - Variable Importance
 Conclusion
 ========================================================
 - Our data scraping techniques yielded a sizable dataset.
+
+References
+========================================================
+- [R wrapper for Spotify's Web API](https://github.com/charlie86/spotifyr)
+- [Web API for Spotify](https://developer.spotify.com/documentation/web-api/)
