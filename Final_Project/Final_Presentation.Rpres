@@ -1,12 +1,17 @@
 Prediction of Spotify Track Popularity by Acoustic Features
 ========================================================
-author: pcbarko-schen176-mettler3-yc62-gianghl2
+author: pcbarko-schen176-mettler3-yc62-gianghl2 (Patrick, Stephanie, Matt, Yongxin, Giang)
 date: Dec 6, 2022
 autosize: true
 
 
 Introduction
 ========================================================
+- Spotify is a popular music streaming service with rich metadata about tracks, artists, albums.
+- Goals of project:
++ Curate a novel dataset by generating random song ids
++ Perform exploratory analysis on the data
++ Perform statistical modeling on the data
 
 
 Data Sampling
@@ -16,7 +21,7 @@ Data sampling based on Spotify API Search endpoint in three scripts
 
 - Bash script
 - R script
-- Python scrip
+- Python script
 
 Bash script for data sampling
 ========================================================
@@ -49,8 +54,14 @@ Python script for data sampling
 ========================================================
 
 
-Data/Statistical Analysis
+Exploratory Analysis
 ========================================================
+
+
+Statistical Modeling
+========================================================
+
+
 
 
 For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
