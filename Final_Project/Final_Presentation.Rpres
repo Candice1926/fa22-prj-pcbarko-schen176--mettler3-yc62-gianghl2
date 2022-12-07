@@ -30,8 +30,25 @@ Data sampling with the Spotify API Search endpoint in three languages
 - [Sampling with R and Search Spotify](https://github.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/blob/main/Old_Analysis/Sampling_Using_SearchSpotify.R) (~88k results)
 - [Python Spotify Crawler](https://github.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/blob/main/Old_Analysis/Use%20Python%20to%20get%20Spotify%20Data) (573,131 results)
 
-Exploratory Analysis
+Exploratory Analysis- Popularity Distribution
 ========================================================
+![Popularity distribution](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image001.png)
+
+Exploratory Analysis - Quantized Popularity Frequencies
+========================================================
+![Quantized popularity frequencies](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image002.png)
+
+Exploratory Analysis - PCA of Acoustic Attributes
+========================================================
+![PCA of Acoustic Attributes](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image003.png)
+
+Exploratory Analysis - Popularity by Acoustic Attributes
+========================================================
+![Popularity by Acoustic Attributes](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image004.png)
+
+Exploratory Analysis - Correlation Plot
+========================================================
+![Correlation Plot](https://raw.githubusercontent.com/illinois-stat447/fa22-prj-pcbarko-schen176--mettler3-yc62-gianghl2/main/Final_Project/Descriptive%20Plots/image005.png)
 
 
 Statistical Modeling - Overall Results
