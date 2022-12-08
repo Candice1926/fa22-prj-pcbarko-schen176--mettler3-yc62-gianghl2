@@ -14,7 +14,7 @@ We were successful in generating a new spotify database of 579,131 unique songs 
 
 In completing this project, our group developed several new capabilities including generating random alphanumeric strings to query the Spotify API, cleaning a very large dataset (scanning for duplicated, etc.), interactive plots and tables using Shiny, and comparing performance of several different models. 
 
-Code and results for the final project, the presentation slides are located in the "Final_Project" directory, and intermediate versions are located in the "Old_Analysis" and "Old_Data" directories. The pdf version of the report "Final_Project_Final_Version.pdf" does not contain interactive plots in the exploratory data analysis section. To view the interactive plots, the file "Final_Project_Final_Version.Rmd" needs to be rendered as HTML.
+Code and results for the final project, the presentation slides are located in the "Final_Project" directory, and intermediate versions are located in the "Old_Analysis" and "Old_Data" directories. The pdf version of the report "Final_Project_Final_Version.pdf" does not contain interactive plots in the exploratory data analysis section. To view the interactive plots, the file "Final_Project_Final_Version.Rmd" needs to be rendered as HTML (this will take a few minutes due to the large dataset).
 
 Our presentation recording can be found in [this Zoom sharable link](https://illinois.zoom.us/rec/share/wgnldplAVJ11KXBDpZqj_iaggfZTFVcBZxsaJJAXLqCjPNkaHFvC40NBdPi3-f9e.Ly11BeAL20kEPCLA 
 ) or [Mediaspace](https://mediaspace.illinois.edu/media/t/1_mo51579s) or [Box](https://uofi.box.com/s/ukrucds8tv3i4kt2srkleohk1dxb6wmw)
